@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>E-commerce Order Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      width: 420px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #priceDisplay {
+      font-weight: bold;
+      color: green;
+      margin: 0 0 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Place Your Order</h2>
+    <form id="orderForm">
+      <input type="text" name="name" placeholder="Full Name" required>
+      <input type="email" name="email" placeholder="Email Address" required>
+      <input type="text" name="address" placeholder="Shipping Address" required>
+
+      <select name="product" id="product" required>
+        <option value="">Select a product</option>
+        <option value="Phone">📱 Phone</option>
+        <option value="Laptop">💻 Laptop</option>
+        <option value="Camera">📷 Camera</option>
+        <option value="Headphones">🎧 Headphones</option>
+        <option value="Tablet">🖥️ Tablet</option>
+        <option value="Earphones">🎶 Earphones</option>
+        <option value="iPods">🎧 iPods</option>
+        <option value="Mouse">🖱️ Mouse</option>
+        <option value="Memory Card">💾 Memory Card</option>
+      </select>
+
+      <p id="priceDisplay"></p>
+
+      <input type="number" name="quantity" id="quantity" placeholder="Quantity" required min="1">
+      <p id="totalDisplay" style="font-weight:bold;"></p>
+
+      <button type="submit">Place Order</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('orderForm');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const formData = new URLSearchParams(new FormData(form));
+
+      try {
+        const response = await fetch('https://ecommerceop.azurewebsites.net/api/order?', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData
+        });
+
+        const text = await response.text();
+
+        if (response.ok) {
+          const email = form.email.value;
+          alert(`${text}\nConfirmation email sent to: ${email}`);
+          form.reset();
+          document.getElementById("priceDisplay").textContent = "";
+          document.getElementById("totalDisplay").textContent = "";
+        } else {
+          alert("Order failed: " + text);
+        }
+
+      } catch (error) {
+        alert("Error connecting to server.\n" + error);
+      }
+    });
+  </script>
+
+  <script>
+    const prices = {
+      "Phone": 15000,
+      "Laptop": 55000,
+      "Camera": 32000,
+      "Headphones": 2000,
+      "Tablet": 22000,
+      "Earphones": 1200,
+      "iPods": 3000,
+      "Mouse": 800,
+      "Memory Card": 500
+    };
+
+    const productSelect = document.getElementById("product");
+    const quantityInput = document.getElementById("quantity");
+    const priceDisplay = document.getElementById("priceDisplay");
+    const totalDisplay = document.getElementById("totalDisplay");
+
+    function updatePriceAndTotal() {
+      const selectedProduct = productSelect.value;
+      const quantity = parseInt(quantityInput.value) || 1;
+
+      if (selectedProduct && prices[selectedProduct]) {
+        const price = prices[selectedProduct];
+        priceDisplay.textContent = `Price per unit: ₹${price.toLocaleString()}`;
+        totalDisplay.textContent = `Total Price: ₹${(price * quantity).toLocaleString()}`;
+      } else {
+        priceDisplay.textContent = "";
+        totalDisplay.textContent = "";
+      }
+    }
+
+    productSelect.addEventListener("change", updatePriceAndTotal);
+    quantityInput.addEventListener("input", updatePriceAndTotal);
+  </script>
+</body>
+</html>
